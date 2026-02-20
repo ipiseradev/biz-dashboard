@@ -1,28 +1,63 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import SalesChart from "@/components/SalesChart";
 import RecentSalesTable from "@/components/RecentSalesTable";
+import { calcMetrics } from "@/lib/metrics";
+
+const STORAGE_KEY = "biz-sales";
 
 export default function Home() {
+  const [metrics, setMetrics] = useState({
+    revenue: 0,
+    salesCount: 0,
+    clients: 0,
+  });
+
+  function refreshMetrics() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    setMetrics(calcMetrics(parsed));
+  }
+
+  useEffect(() => {
+    refreshMetrics();
+
+    const onUpdated = () => refreshMetrics();
+    window.addEventListener("biz-sales-updated", onUpdated);
+
+    return () => window.removeEventListener("biz-sales-updated", onUpdated);
+  }, []);
+
+  function formatARS(value: number) {
+    return new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      maximumFractionDigits: 0,
+    }).format(value);
+  }
+
   return (
-    <main style={{ padding: 24, fontFamily: "system-ui" }}>
-      <h1 style={{ fontSize: 28, marginBottom: 8 }}>Biz Dashboard</h1>
-      <p style={{ opacity: 0.7, marginBottom: 24 }}> Panel General </p>
+    <main>
+      <h1>Biz Dashboard</h1>
+      <p>Panel General</p>
 
       <section
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
           gap: 12,
+          marginBottom: 20,
         }}
       >
-        <Card title="Ingresos" value="$0" />
-        <Card title="Ventas" value="0" />
-        <Card title="Clientes" value="0" />
-        <Card title="Crecimiento" value="0%" />
+        <Card title="Ingresos" value={formatARS(metrics.revenue)} />
+        <Card title="Ventas" value={String(metrics.salesCount)} />
+        <Card title="Clientes" value={String(metrics.clients)} />
+        <Card title="Crecimiento" value="—" />
       </section>
 
       <SalesChart />
       <RecentSalesTable />
-
     </main>
   );
 }

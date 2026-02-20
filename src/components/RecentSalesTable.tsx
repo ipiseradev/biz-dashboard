@@ -18,9 +18,7 @@ export default function RecentSalesTable() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setSales(JSON.parse(stored));
-    }
+    if (stored) setSales(JSON.parse(stored));
   }, []);
 
   useEffect(() => {
@@ -36,7 +34,11 @@ export default function RecentSalesTable() {
       status: "Pendiente",
     };
 
-    setSales([newSale, ...sales]);
+    const updated = [newSale, ...sales];
+    setSales(updated);
+
+    // avisar a KPIs y gráfico
+    window.dispatchEvent(new Event("biz-sales-updated"));
   }
 
   return (
@@ -64,28 +66,39 @@ export default function RecentSalesTable() {
         </button>
       </div>
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left", fontSize: 12, opacity: 0.7 }}>
-            <th style={{ padding: "10px 8px" }}>ID</th>
-            <th style={{ padding: "10px 8px" }}>Cliente</th>
-            <th style={{ padding: "10px 8px" }}>Fecha</th>
-            <th style={{ padding: "10px 8px" }}>Monto</th>
-            <th style={{ padding: "10px 8px" }}>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sales.map((s) => (
-            <tr key={s.id}>
-              <td style={{ padding: "10px 8px" }}>{s.id}</td>
-              <td style={{ padding: "10px 8px" }}>{s.customer}</td>
-              <td style={{ padding: "10px 8px" }}>{s.date}</td>
-              <td style={{ padding: "10px 8px" }}>{formatARS(s.amount)}</td>
-              <td style={{ padding: "10px 8px" }}>{s.status}</td>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ textAlign: "left", fontSize: 12, opacity: 0.7 }}>
+              <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>ID</th>
+              <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>Cliente</th>
+              <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>Fecha</th>
+              <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>Monto</th>
+              <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>Estado</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {sales.map((s) => (
+              <tr key={s.id}>
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>{s.id}</td>
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>{s.customer}</td>
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>{s.date}</td>
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
+                  {formatARS(s.amount)}
+                </td>
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>{s.status}</td>
+              </tr>
+            ))}
+            {sales.length === 0 && (
+              <tr>
+                <td colSpan={5} style={{ padding: 12, opacity: 0.7 }}>
+                  No hay ventas todavía. Tocá “+ Agregar venta”.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
