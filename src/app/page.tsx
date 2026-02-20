@@ -1,4 +1,5 @@
 import SalesChart from "@/components/SalesChart";
+import RecentSalesTable from "@/components/RecentSalesTable";
 
 export default function Home() {
   return (
@@ -20,6 +21,8 @@ export default function Home() {
       </section>
 
       <SalesChart />
+      <RecentSalesTable />
+
     </main>
   );
 }
