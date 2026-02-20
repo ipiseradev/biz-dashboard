@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import SalesChart from "@/components/SalesChart";
 import RecentSalesTable from "@/components/RecentSalesTable";
 import { calcMetrics } from "@/lib/metrics";
+import ExportPDFButton from "@/components/ExportPDFButton";
 
 const STORAGE_KEY = "biz-sales";
 
@@ -38,29 +39,26 @@ export default function Home() {
   }
 
   return (
-    <main>
-      <h1>Biz Dashboard</h1>
-      <p>Panel General</p>
+  <main>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div>
+        <h1>Biz Dashboard</h1>
+        <p>Panel General</p>
+      </div>
 
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          gap: 12,
-          marginBottom: 20,
-        }}
-      >
-        <Card title="Ingresos" value={formatARS(metrics.revenue)} />
-        <Card title="Ventas" value={String(metrics.salesCount)} />
-        <Card title="Clientes" value={String(metrics.clients)} />
-        <Card title="Crecimiento" value="—" />
+      <ExportPDFButton targetId="report" />
+    </div>
+
+    <div id="report" style={{ paddingTop: 12 }}>
+      <section style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12, marginBottom: 20 }}>
+        ...
       </section>
 
       <SalesChart />
       <RecentSalesTable />
-    </main>
-  );
-}
+    </div>
+  </main>
+);
 
 function Card({ title, value }: { title: string; value: string }) {
   return (
