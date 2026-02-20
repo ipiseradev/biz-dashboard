@@ -39,26 +39,44 @@ export default function Home() {
   }
 
   return (
-  <main>
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div>
-        <h1>Biz Dashboard</h1>
-        <p>Panel General</p>
+    <main>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <div>
+          <h1>Biz Dashboard</h1>
+          <p>Panel General</p>
+        </div>
+
+        <ExportPDFButton targetId="report" />
       </div>
 
-      <ExportPDFButton targetId="report" />
-    </div>
+      <div id="report" style={{ paddingTop: 12 }}>
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            gap: 12,
+            marginBottom: 20,
+          }}
+        >
+          <Card title="Ingresos" value={formatARS(metrics.revenue)} />
+          <Card title="Ventas" value={String(metrics.salesCount)} />
+          <Card title="Clientes" value={String(metrics.clients)} />
+          <Card title="Crecimiento" value="—" />
+        </section>
 
-    <div id="report" style={{ paddingTop: 12 }}>
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12, marginBottom: 20 }}>
-        ...
-      </section>
-
-      <SalesChart />
-      <RecentSalesTable />
-    </div>
-  </main>
-);
+        <SalesChart />
+        <RecentSalesTable />
+      </div>
+    </main>
+  );
+}
 
 function Card({ title, value }: { title: string; value: string }) {
   return (
