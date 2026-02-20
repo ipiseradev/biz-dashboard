@@ -5,12 +5,12 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 type Props = {
-  targetId: string;            // id del contenedor a exportar
+  targetId: string;     // id del contenedor a exportar
   filename?: string;
 
   // Branding
-  companyName?: string;        // Ej: "Ferretería López"
-  reportTitle?: string;        // Ej: "Reporte de Ventas"
+  companyName?: string; // Ej: "Ferretería López"
+  reportTitle?: string; // Ej: "Reporte de Ventas"
 };
 
 export default function ExportPDFButton({
@@ -24,31 +24,36 @@ export default function ExportPDFButton({
   function drawHeader(pdf: jsPDF, pageW: number) {
     const dateStr = new Date().toLocaleDateString("es-AR");
 
-    // “Logo” simple (bloque)
+    // Logo (bloque)
     pdf.setFillColor(17, 24, 39);
-    pdf.roundedRect(10, 10, 10, 10, 2, 2, "F");
+    pdf.roundedRect(10, 10, 12, 12, 3, 3, "F");
 
     // Empresa
     pdf.setTextColor(17, 24, 39);
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(14);
-    pdf.text(companyName, 24, 17);
+    pdf.setFontSize(16);
+    pdf.text(companyName, 26, 18);
 
     // Título
     pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(11);
+    pdf.setFontSize(12);
     pdf.setTextColor(107, 114, 128);
-    pdf.text(reportTitle, 24, 22);
+    pdf.text(reportTitle, 26, 25);
 
-    // Fecha a la derecha
+    // Tagline
+    pdf.setFontSize(9);
+    pdf.setTextColor(150, 150, 150);
+    pdf.text("Generado automáticamente por Biz Dashboard", 26, 30);
+
+    // Fecha (derecha)
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
     pdf.setTextColor(107, 114, 128);
-    pdf.text(dateStr, pageW - 10, 17, { align: "right" });
+    pdf.text(dateStr, pageW - 10, 18, { align: "right" });
 
     // Línea separadora
     pdf.setDrawColor(231, 231, 238);
-    pdf.line(10, 28, pageW - 10, 28);
+    pdf.line(10, 34, pageW - 10, 34);
   }
 
   async function exportPDF() {
@@ -57,7 +62,7 @@ export default function ExportPDFButton({
 
     setLoading(true);
     try {
-      // Captura del contenido (solo el report, sin header)
+      // Captura del contenido (solo el "report")
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
@@ -69,41 +74,42 @@ export default function ExportPDFButton({
 
       const imgData = canvas.toDataURL("image/png");
 
+      // PDF A4 (mm)
       const pdf = new jsPDF("p", "mm", "a4");
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
 
-      const headerH = 32; // mm (espacio para el header)
-      const marginX = 10; // mm
+      // Márgenes / header
+      const marginX = 10;
+      const headerH = 42; // más grande (PRO)
+      const bottomMargin = 10;
+
       const contentW = pageW - marginX * 2;
-      const contentH = pageH - headerH - 10; // bottom margin 10
+      const contentH = pageH - headerH - bottomMargin;
 
       const imgProps = pdf.getImageProperties(imgData);
       const imgH = (imgProps.height * contentW) / imgProps.width;
 
-      // Header (página 1)
+      // Página 1
       drawHeader(pdf, pageW);
+      pdf.addImage(imgData, "PNG", marginX, headerH, contentW, imgH);
 
-      // Colocar imagen del report debajo del header
-      let y = headerH;
-      pdf.addImage(imgData, "PNG", marginX, y, contentW, imgH);
-
-      // Si el contenido excede una página, “slice” con offset
+      // Paginación: vamos “desplazando” la imagen
       let heightLeft = imgH - contentH;
 
       while (heightLeft > 0) {
         pdf.addPage();
         drawHeader(pdf, pageW);
 
-        // Movemos la imagen hacia arriba para mostrar la siguiente “sección”
         const offsetY = headerH - (imgH - heightLeft);
         pdf.addImage(imgData, "PNG", marginX, offsetY, contentW, imgH);
 
         heightLeft -= contentH;
       }
 
+      const safeCompany = companyName.replace(/[^\w\s-]/g, "").trim() || "Biz";
       const name =
-        filename || `reporte-${companyName}-${new Date().toISOString().slice(0, 10)}.pdf`;
+        filename || `reporte-${safeCompany}-${new Date().toISOString().slice(0, 10)}.pdf`;
 
       pdf.save(name);
     } catch (e) {

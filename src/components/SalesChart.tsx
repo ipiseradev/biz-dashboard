@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -11,63 +10,70 @@ import {
   CartesianGrid,
 } from "recharts";
 
-type Point = { month: string; revenue: number };
+import { salesData } from "@/data/sales";
 
-const STORAGE_KEY = "biz-sales";
+type SalePoint = { month: string; revenue: number };
 
-function buildChartData(): Point[] {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return [];
-
-  const sales = JSON.parse(stored);
-
-  const map: Record<string, number> = {};
-  for (const s of sales) {
-    if (!s?.date) continue;
-    const month = String(s.date).slice(0, 7); // YYYY-MM
-    const amount = Number(s.amount || 0);
-    map[month] = (map[month] || 0) + amount;
-  }
-
-  return Object.entries(map)
-    .sort(([a], [b]) => (a > b ? 1 : -1))
-    .map(([month, revenue]) => ({ month, revenue }));
+function hasRealData(data: SalePoint[]) {
+  // si hay al menos un punto con revenue > 0
+  return data.some((d) => Number(d.revenue) > 0);
 }
 
 export default function SalesChart() {
-  const [data, setData] = useState<Point[]>([]);
-
-  useEffect(() => {
-    const refresh = () => setData(buildChartData());
-
-    refresh();
-
-    // actualizar cuando cambian ventas
-    window.addEventListener("biz-sales-updated", refresh);
-    return () => window.removeEventListener("biz-sales-updated", refresh);
-  }, []);
+  const ok = hasRealData(salesData as SalePoint[]);
 
   return (
-    <div
-      style={{
-        marginTop: 24,
-        background: "white",
-        padding: 20,
-        borderRadius: 14,
-        border: "1px solid #e5e5e5",
-      }}
-    >
-      <h3 style={{ marginBottom: 12 }}>Ingresos por mes</h3>
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+        <div>
+          <h3 style={{ margin: 0 }}>Ingresos por mes</h3>
+          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+            Evolución de ingresos en el período
+          </div>
+        </div>
+      </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
-          <Line type="monotone" dataKey="revenue" stroke="#000000" strokeWidth={3} />
-        </LineChart>
-      </ResponsiveContainer>
+      {!ok ? (
+        <div
+          style={{
+            border: "1px dashed var(--border)",
+            borderRadius: 14,
+            padding: 22,
+            background: "#fff",
+            minHeight: 240,
+            display: "grid",
+            placeItems: "center",
+            textAlign: "center",
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 6 }}>
+              Todavía no hay datos para mostrar
+            </div>
+            <div style={{ fontSize: 13, color: "var(--muted)" }}>
+              Agregá ventas para que el gráfico empiece a calcular ingresos por mes.
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ width: "100%", height: 300 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={salesData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="#000000"
+                strokeWidth={3}
+                dot={{ r: 3 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }
