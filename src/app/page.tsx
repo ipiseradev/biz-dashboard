@@ -1,10 +1,10 @@
+import SalesChart from "@/components/SalesChart";
+
 export default function Home() {
   return (
     <main style={{ padding: 24, fontFamily: "system-ui" }}>
       <h1 style={{ fontSize: 28, marginBottom: 8 }}>Biz Dashboard</h1>
-      <p style={{ opacity: 0.7, marginBottom: 24 }}>
-        Panel de métricas 
-      </p>
+      <p style={{ opacity: 0.7, marginBottom: 24 }}>Panel de métricas — v0</p>
 
       <section
         style={{
@@ -18,6 +18,8 @@ export default function Home() {
         <Card title="Clientes" value="0" />
         <Card title="Crecimiento" value="0%" />
       </section>
+
+      <SalesChart />
     </main>
   );
 }
