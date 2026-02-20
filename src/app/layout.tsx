@@ -1,17 +1,14 @@
 import Sidebar from "@/components/Sidebar";
+import "./globals.css";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body style={{ margin: 0, fontFamily: "system-ui" }}>
-        <div style={{ display: "flex" }}>
+      <body>
+        <div style={{ display: "flex", minHeight: "100vh" }}>
           <Sidebar />
-          <main style={{ flex: 1, padding: 24, background: "#f3f4f6" }}>
-            {children}
+          <main style={{ flex: 1, padding: 24 }}>
+            <div className="container">{children}</div>
           </main>
         </div>
       </body>

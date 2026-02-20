@@ -5,12 +5,51 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 type Props = {
-  targetId: string; // id del contenedor a exportar
+  targetId: string;            // id del contenedor a exportar
   filename?: string;
+
+  // Branding
+  companyName?: string;        // Ej: "Ferretería López"
+  reportTitle?: string;        // Ej: "Reporte de Ventas"
 };
 
-export default function ExportPDFButton({ targetId, filename }: Props) {
+export default function ExportPDFButton({
+  targetId,
+  filename,
+  companyName = "Biz",
+  reportTitle = "Reporte de Ventas",
+}: Props) {
   const [loading, setLoading] = useState(false);
+
+  function drawHeader(pdf: jsPDF, pageW: number) {
+    const dateStr = new Date().toLocaleDateString("es-AR");
+
+    // “Logo” simple (bloque)
+    pdf.setFillColor(17, 24, 39);
+    pdf.roundedRect(10, 10, 10, 10, 2, 2, "F");
+
+    // Empresa
+    pdf.setTextColor(17, 24, 39);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(14);
+    pdf.text(companyName, 24, 17);
+
+    // Título
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(11);
+    pdf.setTextColor(107, 114, 128);
+    pdf.text(reportTitle, 24, 22);
+
+    // Fecha a la derecha
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.setTextColor(107, 114, 128);
+    pdf.text(dateStr, pageW - 10, 17, { align: "right" });
+
+    // Línea separadora
+    pdf.setDrawColor(231, 231, 238);
+    pdf.line(10, 28, pageW - 10, 28);
+  }
 
   async function exportPDF() {
     const el = document.getElementById(targetId);
@@ -18,7 +57,7 @@ export default function ExportPDFButton({ targetId, filename }: Props) {
 
     setLoading(true);
     try {
-      // Captura a imagen
+      // Captura del contenido (solo el report, sin header)
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
@@ -30,32 +69,41 @@ export default function ExportPDFButton({ targetId, filename }: Props) {
 
       const imgData = canvas.toDataURL("image/png");
 
-      // PDF A4 (mm)
       const pdf = new jsPDF("p", "mm", "a4");
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
 
-      // Pasar pixeles->mm manteniendo aspect ratio
+      const headerH = 32; // mm (espacio para el header)
+      const marginX = 10; // mm
+      const contentW = pageW - marginX * 2;
+      const contentH = pageH - headerH - 10; // bottom margin 10
+
       const imgProps = pdf.getImageProperties(imgData);
-      const imgW = pageW;
-      const imgH = (imgProps.height * imgW) / imgProps.width;
+      const imgH = (imgProps.height * contentW) / imgProps.width;
 
-      let y = 0;
-      let heightLeft = imgH;
+      // Header (página 1)
+      drawHeader(pdf, pageW);
 
-      pdf.addImage(imgData, "PNG", 0, y, imgW, imgH);
-      heightLeft -= pageH;
+      // Colocar imagen del report debajo del header
+      let y = headerH;
+      pdf.addImage(imgData, "PNG", marginX, y, contentW, imgH);
+
+      // Si el contenido excede una página, “slice” con offset
+      let heightLeft = imgH - contentH;
 
       while (heightLeft > 0) {
         pdf.addPage();
-        y = -(imgH - heightLeft);
-        pdf.addImage(imgData, "PNG", 0, y, imgW, imgH);
-        heightLeft -= pageH;
+        drawHeader(pdf, pageW);
+
+        // Movemos la imagen hacia arriba para mostrar la siguiente “sección”
+        const offsetY = headerH - (imgH - heightLeft);
+        pdf.addImage(imgData, "PNG", marginX, offsetY, contentW, imgH);
+
+        heightLeft -= contentH;
       }
 
       const name =
-        filename ||
-        `biz-dashboard-${new Date().toISOString().slice(0, 10)}.pdf`;
+        filename || `reporte-${companyName}-${new Date().toISOString().slice(0, 10)}.pdf`;
 
       pdf.save(name);
     } catch (e) {
@@ -70,15 +118,7 @@ export default function ExportPDFButton({ targetId, filename }: Props) {
     <button
       onClick={exportPDF}
       disabled={loading}
-      style={{
-        padding: "8px 12px",
-        borderRadius: 10,
-        border: "1px solid #111",
-        cursor: loading ? "not-allowed" : "pointer",
-        background: loading ? "#333" : "black",
-        color: "white",
-        opacity: loading ? 0.8 : 1,
-      }}
+      className="btn btn-primary"
       title="Exportar reporte a PDF"
     >
       {loading ? "Generando..." : "Exportar PDF"}

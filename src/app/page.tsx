@@ -46,52 +46,56 @@ export default function Home() {
           justifyContent: "space-between",
           alignItems: "center",
           gap: 12,
+          marginBottom: 14,
         }}
       >
         <div>
-          <h1>Biz Dashboard</h1>
-          <p>Panel General</p>
+          <h1 className="h1">Dashboard</h1>
+          <p className="sub"></p>
         </div>
 
-        <ExportPDFButton targetId="report" />
-      </div>
+        <ExportPDFButton
+        targetId="report"
+        companyName="Biz"
+        reportTitle="Reporte de Ventas"
+        />
+      
+        </div>
 
-      <div id="report" style={{ paddingTop: 12 }}>
+
+      <div id="report" style={{ display: "grid", gap: 16 }}>
         <section
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
             gap: 12,
-            marginBottom: 20,
           }}
         >
-          <Card title="Ingresos" value={formatARS(metrics.revenue)} />
-          <Card title="Ventas" value={String(metrics.salesCount)} />
-          <Card title="Clientes" value={String(metrics.clients)} />
-          <Card title="Crecimiento" value="—" />
+          <Kpi title="Ingresos Por Venta" value={formatARS(metrics.revenue)} />
+          <Kpi title="Ventas Realizadas" value={String(metrics.salesCount)} />
+          <Kpi title="Clientes Activos" value={String(metrics.clients)} />
+          <Kpi title="Crecimiento Mensual" value="—" />
         </section>
 
-        <SalesChart />
+        <div className="card card-pad">
+          <SalesChart />
+        </div>
+
         <RecentSalesTable />
       </div>
     </main>
   );
 }
 
-function Card({ title, value }: { title: string; value: string }) {
+function Kpi({ title, value }: { title: string; value: string }) {
   return (
-    <div
-      style={{
-        border: "1px solid #e5e5e5",
-        borderRadius: 14,
-        padding: 16,
-        background: "white",
-      }}
-    >
-      <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>
+    <div className="card card-pad">
+      <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 8 }}>
         {title}
       </div>
-      <div style={{ fontSize: 22, fontWeight: 700 }}>{value}</div>
+      <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: "-0.02em" }}>
+        {value}
+      </div>
     </div>
   );
 }
