@@ -23,7 +23,7 @@ export default function SalesChart() {
         border: "1px solid #e5e5e5",
       }}
     >
-      <h3 style={{ marginBottom: 20 }}>Ingresos Mensuales</h3>
+      <h3 style={{ marginBottom: 20 }}>Ingresos</h3>
 
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={salesData}>
@@ -34,7 +34,7 @@ export default function SalesChart() {
           <Line
             type="monotone"
             dataKey="revenue"
-            stroke="#2563eb"
+            stroke="#000000"
             strokeWidth={3}
           />
         </LineChart>
