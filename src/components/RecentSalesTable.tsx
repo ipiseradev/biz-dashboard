@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { RecentSale } from "@/data/recentSales";
+import AddSaleModal from "@/components/AddSaleModal";
 
 const STORAGE_KEY = "biz-sales";
 
@@ -15,6 +16,7 @@ function formatARS(value: number) {
 
 export default function RecentSalesTable() {
   const [sales, setSales] = useState<RecentSale[]>([]);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -25,39 +27,8 @@ export default function RecentSalesTable() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sales));
   }, [sales]);
 
-  function addSale() {
-    const customer = prompt("Cliente:");
-    if (!customer) return;
-
-    const amountStr = prompt("Monto:");
-    if (!amountStr) return;
-
-    const amount = Number(amountStr);
-    if (Number.isNaN(amount) || amount <= 0) return;
-
-    const today = new Date().toISOString().split("T")[0];
-    const date = prompt("Fecha (YYYY-MM-DD):", today) || today;
-
-    const statusInput =
-      prompt("Estado (Pagado / Pendiente / Vencido):", "Pendiente") ||
-      "Pendiente";
-
-    const status: RecentSale["status"] =
-      statusInput === "Pagado" || statusInput === "Vencido"
-        ? statusInput
-        : "Pendiente";
-
-    const newSale: RecentSale = {
-      id: "FV-" + Math.floor(Math.random() * 10000),
-      customer,
-      date,
-      amount,
-      status,
-    };
-
-    setSales((prev) => [newSale, ...prev]);
-
-    // avisar a KPIs y gráfico
+  function createSale(sale: RecentSale) {
+    setSales((prev) => [sale, ...prev]);
     window.dispatchEvent(new Event("biz-sales-updated"));
   }
 
@@ -71,6 +42,12 @@ export default function RecentSalesTable() {
         border: "1px solid #e5e5e5",
       }}
     >
+      <AddSaleModal
+        open={open}
+        onClose={() => setOpen(false)}
+        onCreate={createSale}
+      />
+
       <div
         style={{
           display: "flex",
@@ -80,7 +57,7 @@ export default function RecentSalesTable() {
       >
         <h3 style={{ margin: 0 }}>Ventas recientes</h3>
         <button
-          onClick={addSale}
+          onClick={() => setOpen(true)}
           style={{
             padding: "6px 12px",
             borderRadius: 8,
@@ -117,44 +94,19 @@ export default function RecentSalesTable() {
           <tbody>
             {sales.map((s) => (
               <tr key={s.id}>
-                <td
-                  style={{
-                    padding: "10px 8px",
-                    borderBottom: "1px solid #f2f2f2",
-                  }}
-                >
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
                   {s.id}
                 </td>
-                <td
-                  style={{
-                    padding: "10px 8px",
-                    borderBottom: "1px solid #f2f2f2",
-                  }}
-                >
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
                   {s.customer}
                 </td>
-                <td
-                  style={{
-                    padding: "10px 8px",
-                    borderBottom: "1px solid #f2f2f2",
-                  }}
-                >
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
                   {s.date}
                 </td>
-                <td
-                  style={{
-                    padding: "10px 8px",
-                    borderBottom: "1px solid #f2f2f2",
-                  }}
-                >
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
                   {formatARS(s.amount)}
                 </td>
-                <td
-                  style={{
-                    padding: "10px 8px",
-                    borderBottom: "1px solid #f2f2f2",
-                  }}
-                >
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
                   {s.status}
                 </td>
               </tr>
